@@ -19,11 +19,49 @@ const Index = () => {
   const [activeApp, setActiveApp] = useState('discord');
   const [calcDisplay, setCalcDisplay] = useState('0');
   const [notepadText, setNotepadText] = useState('');
+  const [windowPositions, setWindowPositions] = useState<{[key: string]: {x: number, y: number}}>({
+    discord: { x: 100, y: 80 },
+    notepad: { x: 150, y: 120 },
+    calc: { x: 200, y: 160 },
+    browser: { x: 250, y: 100 },
+    cs2: { x: 50, y: 50 }
+  });
+  const [dragging, setDragging] = useState<{app: string, startX: number, startY: number} | null>(null);
+  const [csHealth, setCsHealth] = useState(100);
+  const [csAmmo, setCsAmmo] = useState(30);
+  const [csKills, setCsKills] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (dragging) {
+        const newX = e.clientX - dragging.startX;
+        const newY = e.clientY - dragging.startY;
+        setWindowPositions(prev => ({
+          ...prev,
+          [dragging.app]: { x: newX, y: newY }
+        }));
+      }
+    };
+
+    const handleMouseUp = () => {
+      setDragging(null);
+    };
+
+    if (dragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging]);
 
   const handleUnlock = () => {
     if (inputText === '883') {
@@ -70,6 +108,30 @@ const Index = () => {
     }
   };
 
+  const startDrag = (app: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const rect = (e.target as HTMLElement).closest('.window-card')?.getBoundingClientRect();
+    if (rect) {
+      setDragging({
+        app,
+        startX: e.clientX - rect.left,
+        startY: e.clientY - rect.top
+      });
+    }
+    setActiveApp(app);
+  };
+
+  const shootCS = () => {
+    if (csAmmo > 0) {
+      setCsAmmo(csAmmo - 1);
+      setCsKills(csKills + 1);
+    }
+  };
+
+  const reloadCS = () => {
+    setCsAmmo(30);
+  };
+
   if (isUnlocked && showDesktop) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-400 to-blue-600 relative overflow-hidden">
@@ -111,13 +173,27 @@ const Index = () => {
               </div>
               <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Браузер</span>
             </div>
+
+            <div className="flex flex-col items-center gap-1 w-24 cursor-pointer group" onDoubleClick={() => openApp('cs2')}>
+              <div className="bg-blue-900/30 p-3 rounded group-hover:bg-blue-900/50 transition-all">
+                <Icon name="Crosshair" className="h-12 w-12 text-white" />
+              </div>
+              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">EVIL CS2</span>
+            </div>
           </div>
 
           {/* EVIL DISCORD Window */}
           {openApps.includes('discord') && (
-          <Card className={`absolute top-20 left-20 w-[800px] h-[600px] shadow-2xl overflow-hidden ${activeApp === 'discord' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('discord')}>
+          <Card 
+            className={`window-card absolute w-[800px] h-[600px] shadow-2xl overflow-hidden ${activeApp === 'discord' ? 'z-50' : 'z-40'}`}
+            style={{ left: `${windowPositions.discord.x}px`, top: `${windowPositions.discord.y}px` }}
+            onClick={() => setActiveApp('discord')}
+          >
             {/* Window Title Bar */}
-            <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
+            <div 
+              className="bg-gray-800 px-4 py-2 flex items-center justify-between cursor-move"
+              onMouseDown={(e) => startDrag('discord', e)}
+            >
               <div className="flex items-center gap-3">
                 <div className="bg-red-600 p-1 rounded">
                   <Icon name="MessageSquare" className="h-4 w-4 text-white" />
@@ -127,7 +203,7 @@ const Index = () => {
               <div className="flex gap-2">
                 <button className="hover:bg-gray-700 px-3 py-1 text-white">_</button>
                 <button className="hover:bg-gray-700 px-3 py-1 text-white">□</button>
-                <button className="hover:bg-red-600 px-3 py-1 text-white">×</button>
+                <button className="hover:bg-red-600 px-3 py-1 text-white" onClick={(e) => { e.stopPropagation(); closeApp('discord'); }}>×</button>
               </div>
             </div>
 
@@ -220,8 +296,15 @@ const Index = () => {
 
           {/* Notepad Window */}
           {openApps.includes('notepad') && (
-            <Card className={`absolute top-32 left-40 w-[600px] h-[500px] shadow-2xl overflow-hidden ${activeApp === 'notepad' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('notepad')}>
-              <div className="bg-white px-4 py-2 flex items-center justify-between border-b">
+            <Card 
+              className={`window-card absolute w-[600px] h-[500px] shadow-2xl overflow-hidden ${activeApp === 'notepad' ? 'z-50' : 'z-40'}`}
+              style={{ left: `${windowPositions.notepad.x}px`, top: `${windowPositions.notepad.y}px` }}
+              onClick={() => setActiveApp('notepad')}
+            >
+              <div 
+                className="bg-white px-4 py-2 flex items-center justify-between border-b cursor-move"
+                onMouseDown={(e) => startDrag('notepad', e)}
+              >
                 <div className="flex items-center gap-3">
                   <Icon name="FileText" className="h-4 w-4" />
                   <span className="font-semibold">Блокнот</span>
@@ -229,7 +312,7 @@ const Index = () => {
                 <div className="flex gap-2">
                   <button className="hover:bg-gray-200 px-3 py-1">_</button>
                   <button className="hover:bg-gray-200 px-3 py-1">□</button>
-                  <button className="hover:bg-red-600 hover:text-white px-3 py-1" onClick={() => closeApp('notepad')}>×</button>
+                  <button className="hover:bg-red-600 hover:text-white px-3 py-1" onClick={(e) => { e.stopPropagation(); closeApp('notepad'); }}>×</button>
                 </div>
               </div>
               <textarea
@@ -243,13 +326,20 @@ const Index = () => {
 
           {/* Calculator Window */}
           {openApps.includes('calc') && (
-            <Card className={`absolute top-44 left-60 w-[320px] shadow-2xl overflow-hidden ${activeApp === 'calc' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('calc')}>
-              <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
+            <Card 
+              className={`window-card absolute w-[320px] shadow-2xl overflow-hidden ${activeApp === 'calc' ? 'z-50' : 'z-40'}`}
+              style={{ left: `${windowPositions.calc.x}px`, top: `${windowPositions.calc.y}px` }}
+              onClick={() => setActiveApp('calc')}
+            >
+              <div 
+                className="bg-gray-800 px-4 py-2 flex items-center justify-between cursor-move"
+                onMouseDown={(e) => startDrag('calc', e)}
+              >
                 <div className="flex items-center gap-3">
                   <Icon name="Calculator" className="h-4 w-4 text-white" />
                   <span className="text-white font-semibold">Калькулятор</span>
                 </div>
-                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={() => closeApp('calc')}>×</button>
+                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={(e) => { e.stopPropagation(); closeApp('calc'); }}>×</button>
               </div>
               <div className="bg-gray-900 p-4">
                 <div className="bg-gray-800 text-white text-right text-3xl p-4 mb-4 rounded">{calcDisplay}</div>
@@ -270,13 +360,20 @@ const Index = () => {
 
           {/* Browser Window */}
           {openApps.includes('browser') && (
-            <Card className={`absolute top-24 left-80 w-[900px] h-[650px] shadow-2xl overflow-hidden ${activeApp === 'browser' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('browser')}>
-              <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
+            <Card 
+              className={`window-card absolute w-[900px] h-[650px] shadow-2xl overflow-hidden ${activeApp === 'browser' ? 'z-50' : 'z-40'}`}
+              style={{ left: `${windowPositions.browser.x}px`, top: `${windowPositions.browser.y}px` }}
+              onClick={() => setActiveApp('browser')}
+            >
+              <div 
+                className="bg-gray-800 px-4 py-2 flex items-center justify-between cursor-move"
+                onMouseDown={(e) => startDrag('browser', e)}
+              >
                 <div className="flex items-center gap-3">
                   <Icon name="Globe" className="h-4 w-4 text-white" />
                   <span className="text-white font-semibold">Evil Browser</span>
                 </div>
-                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={() => closeApp('browser')}>×</button>
+                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={(e) => { e.stopPropagation(); closeApp('browser'); }}>×</button>
               </div>
               <div className="bg-gray-100 p-2 border-b flex items-center gap-2">
                 <Button size="sm" variant="ghost"><Icon name="ChevronLeft" className="h-4 w-4" /></Button>
@@ -293,6 +390,124 @@ const Index = () => {
                   <h1 className="text-6xl font-bold text-red-500 animate-pulse">EVIL TEAM</h1>
                   <p className="text-3xl text-white">Официальный сайт</p>
                   <p className="text-xl text-gray-400">👾 Добро пожаловать в тёмную сторону 👾</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* EVIL CS2 Window */}
+          {openApps.includes('cs2') && (
+            <Card 
+              className={`window-card absolute w-[1000px] h-[700px] shadow-2xl overflow-hidden ${activeApp === 'cs2' ? 'z-50' : 'z-40'}`}
+              style={{ left: `${windowPositions.cs2.x}px`, top: `${windowPositions.cs2.y}px` }}
+              onClick={() => setActiveApp('cs2')}
+            >
+              <div 
+                className="bg-black px-4 py-2 flex items-center justify-between cursor-move border-b-2 border-orange-500"
+                onMouseDown={(e) => startDrag('cs2', e)}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="Crosshair" className="h-4 w-4 text-orange-500" />
+                  <span className="text-orange-500 font-bold">EVIL CS2</span>
+                </div>
+                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={(e) => { e.stopPropagation(); closeApp('cs2'); }}>×</button>
+              </div>
+              
+              {/* CS2 Game Interface */}
+              <div className="h-[calc(100%-48px)] bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
+                {/* Game Area */}
+                <div 
+                  className="h-full w-full bg-cover bg-center relative cursor-crosshair"
+                  style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23222\'/%3E%3Crect x=\'0\' y=\'0\' width=\'50\' height=\'50\' fill=\'%23333\'/%3E%3Crect x=\'50\' y=\'50\' width=\'50\' height=\'50\' fill=\'%23333\'/%3E%3C/svg%3E")' }}
+                  onClick={shootCS}
+                >
+                  {/* Target Enemy */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="text-6xl animate-bounce-small">👤</div>
+                    <div className="text-center text-red-500 font-bold text-sm mt-2">TERRORIST</div>
+                  </div>
+
+                  {/* Crosshair */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                    <div className="relative w-8 h-8">
+                      <div className="absolute top-0 left-1/2 w-0.5 h-2 bg-green-400 transform -translate-x-1/2"></div>
+                      <div className="absolute bottom-0 left-1/2 w-0.5 h-2 bg-green-400 transform -translate-x-1/2"></div>
+                      <div className="absolute left-0 top-1/2 w-2 h-0.5 bg-green-400 transform -translate-y-1/2"></div>
+                      <div className="absolute right-0 top-1/2 w-2 h-0.5 bg-green-400 transform -translate-y-1/2"></div>
+                    </div>
+                  </div>
+
+                  {/* HUD Bottom Left - Health & Armor */}
+                  <div className="absolute bottom-4 left-4 space-y-2">
+                    <div className="flex items-center gap-3 bg-black/80 px-4 py-2 rounded">
+                      <Icon name="Heart" className="h-6 w-6 text-green-500" />
+                      <div className="text-3xl font-bold text-green-500">{csHealth}</div>
+                    </div>
+                    <div className="flex items-center gap-3 bg-black/80 px-4 py-2 rounded">
+                      <Icon name="Shield" className="h-6 w-6 text-blue-500" />
+                      <div className="text-3xl font-bold text-blue-500">100</div>
+                    </div>
+                  </div>
+
+                  {/* HUD Bottom Right - Weapon & Ammo */}
+                  <div className="absolute bottom-4 right-4">
+                    <div className="bg-black/80 px-6 py-3 rounded-lg">
+                      <div className="flex items-center gap-4 mb-2">
+                        <Icon name="Crosshair" className="h-8 w-8 text-orange-500" />
+                        <div>
+                          <div className="text-orange-500 text-sm font-bold">AK-47</div>
+                          <div className="text-gray-400 text-xs">Автомат</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-4xl font-bold text-white">{csAmmo}</div>
+                        <div className="text-gray-400">/</div>
+                        <div className="text-2xl text-gray-400">90</div>
+                      </div>
+                      <Button 
+                        className="w-full mt-2 bg-orange-600 hover:bg-orange-700"
+                        onClick={(e) => { e.stopPropagation(); reloadCS(); }}
+                        disabled={csAmmo === 30}
+                      >
+                        <Icon name="RotateCw" className="h-4 w-4 mr-2" />
+                        Перезарядка [R]
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* HUD Top - Score & Timer */}
+                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-black/80 px-8 py-3 rounded-lg flex items-center gap-8">
+                      <div className="text-center">
+                        <div className="text-green-500 text-sm">CT</div>
+                        <div className="text-2xl font-bold text-white">5</div>
+                      </div>
+                      <div className="text-orange-500 text-3xl font-bold">1:45</div>
+                      <div className="text-center">
+                        <div className="text-red-500 text-sm">T</div>
+                        <div className="text-2xl font-bold text-white">4</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Kill Counter */}
+                  <div className="absolute top-4 right-4 bg-black/80 px-4 py-2 rounded">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Target" className="h-5 w-5 text-red-500" />
+                      <span className="text-white font-bold">Убийств: {csKills}</span>
+                    </div>
+                  </div>
+
+                  {/* Kill Feed */}
+                  <div className="absolute top-20 right-4 space-y-1">
+                    {csKills > 0 && (
+                      <div className="bg-black/80 px-3 py-1 rounded text-sm flex items-center gap-2 animate-fade-in">
+                        <span className="text-green-500 font-bold">EvilPlayer</span>
+                        <Icon name="Crosshair" className="h-3 w-3 text-orange-500" />
+                        <span className="text-red-500">Terrorist</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </Card>
