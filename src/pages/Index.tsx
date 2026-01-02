@@ -10,6 +10,11 @@ const Index = () => {
   const [showDesktop, setShowDesktop] = useState(false);
   const [error, setError] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [messages, setMessages] = useState([
+    { id: 1, user: 'EvilMaster', avatar: 'E', color: 'red', text: 'Добро пожаловать в EVIL DISCORD! Мы успешно взломали твой ПК! 😈' },
+    { id: 2, user: 'HackerPro', avatar: 'H', color: 'purple', text: 'EVIL TEAM ЭТО КРУТО! 🔥' }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -44,14 +49,14 @@ const Index = () => {
               <div className="bg-blue-900/30 p-3 rounded group-hover:bg-blue-900/50 transition-all">
                 <Icon name="Monitor" className="h-12 w-12 text-white" />
               </div>
-              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">This PC</span>
+              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Этот компьютер</span>
             </div>
             
             <div className="flex flex-col items-center gap-1 w-24 cursor-pointer group">
               <div className="bg-blue-900/30 p-3 rounded group-hover:bg-blue-900/50 transition-all">
                 <Icon name="Trash2" className="h-12 w-12 text-white" />
               </div>
-              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Recycle Bin</span>
+              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Корзина</span>
             </div>
           </div>
 
@@ -87,21 +92,21 @@ const Index = () => {
               {/* Channels Sidebar */}
               <div className="w-60 bg-gray-800 flex flex-col">
                 <div className="p-4 border-b border-gray-700">
-                  <h3 className="text-white font-bold">EVIL TEAM SERVER</h3>
+                  <h3 className="text-white font-bold">СЕРВЕР EVIL TEAM</h3>
                 </div>
                 <div className="flex-1 p-2 space-y-1">
-                  <div className="text-gray-400 text-xs font-semibold px-2 py-1">TEXT CHANNELS</div>
+                  <div className="text-gray-400 text-xs font-semibold px-2 py-1">ТЕКСТОВЫЕ КАНАЛЫ</div>
                   <div className="flex items-center gap-2 px-2 py-1 text-gray-300 hover:bg-gray-700 rounded cursor-pointer">
                     <Icon name="Hash" className="h-4 w-4" />
-                    <span>general</span>
+                    <span>основной</span>
                   </div>
                   <div className="flex items-center gap-2 px-2 py-1 text-gray-300 hover:bg-gray-700 rounded cursor-pointer bg-gray-700">
                     <Icon name="Hash" className="h-4 w-4" />
-                    <span>evil-chat</span>
+                    <span>злой-чат</span>
                   </div>
                   <div className="flex items-center gap-2 px-2 py-1 text-gray-300 hover:bg-gray-700 rounded cursor-pointer">
                     <Icon name="Hash" className="h-4 w-4" />
-                    <span>hacking</span>
+                    <span>взлом</span>
                   </div>
                 </div>
               </div>
@@ -111,43 +116,48 @@ const Index = () => {
                 <div className="p-4 border-b border-gray-600 bg-gray-800">
                   <h3 className="text-white font-semibold flex items-center gap-2">
                     <Icon name="Hash" className="h-5 w-5" />
-                    evil-chat
+                    злой-чат
                   </h3>
                 </div>
                 
                 <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white font-bold">
-                      E
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-red-500 font-semibold">EvilMaster</span>
-                        <span className="text-gray-400 text-xs">{currentTime.toLocaleTimeString()}</span>
+                  {messages.map((msg) => (
+                    <div key={msg.id} className="flex gap-3">
+                      <div className={`w-10 h-10 rounded-full bg-${msg.color}-600 flex items-center justify-center text-white font-bold`}>
+                        {msg.avatar}
                       </div>
-                      <p className="text-gray-300">Welcome to EVIL DISCORD! We hacked your PC successfully! 😈</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
-                      H
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-purple-400 font-semibold">HackerPro</span>
-                        <span className="text-gray-400 text-xs">{currentTime.toLocaleTimeString()}</span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-${msg.color}-500 font-semibold`}>{msg.user}</span>
+                          <span className="text-gray-400 text-xs">{currentTime.toLocaleTimeString()}</span>
+                        </div>
+                        <p className="text-gray-300">{msg.text}</p>
                       </div>
-                      <p className="text-gray-300">EVIL TEAM THIS COOL! 🔥</p>
                     </div>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="p-4 bg-gray-800">
-                  <Input
-                    placeholder="Message #evil-chat"
-                    className="bg-gray-700 border-0 text-white placeholder:text-gray-400"
-                  />
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (newMessage.trim()) {
+                      setMessages([...messages, {
+                        id: messages.length + 1,
+                        user: 'Ты',
+                        avatar: 'Я',
+                        color: 'blue',
+                        text: newMessage
+                      }]);
+                      setNewMessage('');
+                    }
+                  }}>
+                    <Input
+                      placeholder="Сообщение в #злой-чат"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="bg-gray-700 border-0 text-white placeholder:text-gray-400"
+                    />
+                  </form>
                 </div>
               </div>
             </div>
@@ -162,7 +172,7 @@ const Index = () => {
             </button>
             <div className="bg-white/20 px-3 py-1 rounded flex items-center gap-2">
               <Icon name="Search" className="h-4 w-4 text-white" />
-              <span className="text-white text-sm">Type here to search</span>
+              <span className="text-white text-sm">Введите здесь для поиска</span>
             </div>
           </div>
 
