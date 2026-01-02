@@ -24,7 +24,8 @@ const Index = () => {
     notepad: { x: 150, y: 120 },
     calc: { x: 200, y: 160 },
     browser: { x: 250, y: 100 },
-    cs2: { x: 50, y: 50 }
+    cs2: { x: 50, y: 50 },
+    'died-ssd': { x: 80, y: 60 }
   });
   const [dragging, setDragging] = useState<{app: string, startX: number, startY: number} | null>(null);
   const [csHealth, setCsHealth] = useState(100);
@@ -385,11 +386,31 @@ const Index = () => {
                   readOnly 
                 />
               </div>
-              <div className="h-[calc(100%-96px)] bg-gradient-to-br from-red-900 to-black flex items-center justify-center">
-                <div className="text-center space-y-4">
+              <div className="h-[calc(100%-96px)] bg-gradient-to-br from-red-900 to-black flex items-center justify-center overflow-auto">
+                <div className="text-center space-y-6 p-8">
                   <h1 className="text-6xl font-bold text-red-500 animate-pulse">EVIL TEAM</h1>
                   <p className="text-3xl text-white">Официальный сайт</p>
                   <p className="text-xl text-gray-400">👾 Добро пожаловать в тёмную сторону 👾</p>
+                  
+                  <div className="mt-12 space-y-4">
+                    <div className="bg-black/50 p-6 rounded-lg border-2 border-red-500 hover:border-red-400 transition-all">
+                      <h2 className="text-2xl font-bold text-red-500 mb-3">⚠️ ОПАСНАЯ ЗОНА ⚠️</h2>
+                      <p className="text-gray-300 mb-4">Вход только для членов EVIL TEAM</p>
+                      <Button 
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold"
+                        onClick={() => openApp('died-ssd')}
+                      >
+                        <Icon name="Skull" className="mr-2 h-5 w-5" />
+                        Зайти на DIED SSD
+                      </Button>
+                    </div>
+
+                    <div className="bg-black/30 p-4 rounded-lg">
+                      <p className="text-red-400 text-sm">
+                        ⚠️ Внимание: Вход на свой страх и риск
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -513,6 +534,121 @@ const Index = () => {
             </Card>
           )}
 
+          {/* DIED SSD Window */}
+          {openApps.includes('died-ssd') && (
+            <Card 
+              className={`window-card absolute w-[950px] h-[700px] shadow-2xl overflow-hidden ${activeApp === 'died-ssd' ? 'z-50' : 'z-40'}`}
+              style={{ left: `${windowPositions['died-ssd'].x}px`, top: `${windowPositions['died-ssd'].y}px` }}
+              onClick={() => setActiveApp('died-ssd')}
+            >
+              <div 
+                className="bg-black px-4 py-2 flex items-center justify-between cursor-move border-b-2 border-red-600"
+                onMouseDown={(e) => startDrag('died-ssd', e)}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon name="Skull" className="h-4 w-4 text-red-600 animate-pulse" />
+                  <span className="text-red-600 font-bold">DIED SSD - Danger Zone</span>
+                </div>
+                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={(e) => { e.stopPropagation(); closeApp('died-ssd'); }}>×</button>
+              </div>
+              
+              <div className="h-[calc(100%-48px)] bg-gradient-to-br from-gray-900 via-red-950 to-black overflow-auto">
+                <div className="p-8 space-y-6">
+                  {/* Warning Header */}
+                  <div className="text-center border-4 border-red-600 bg-black/80 p-6 rounded-lg animate-pulse">
+                    <Icon name="AlertTriangle" className="h-16 w-16 text-red-600 mx-auto mb-4" />
+                    <h1 className="text-5xl font-bold text-red-600 mb-3">⚠️ DIED SSD ⚠️</h1>
+                    <p className="text-xl text-red-400">Система критического повреждения</p>
+                  </div>
+
+                  {/* Danger Stats */}
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="bg-black/60 border-2 border-red-600 p-4 rounded-lg text-center">
+                      <Icon name="HardDrive" className="h-12 w-12 text-red-500 mx-auto mb-2" />
+                      <div className="text-3xl font-bold text-red-500">73%</div>
+                      <div className="text-sm text-gray-400">SSD Повреждён</div>
+                    </div>
+                    <div className="bg-black/60 border-2 border-orange-600 p-4 rounded-lg text-center">
+                      <Icon name="Flame" className="h-12 w-12 text-orange-500 mx-auto mb-2" />
+                      <div className="text-3xl font-bold text-orange-500">85°C</div>
+                      <div className="text-sm text-gray-400">Температура</div>
+                    </div>
+                    <div className="bg-black/60 border-2 border-yellow-600 p-4 rounded-lg text-center">
+                      <Icon name="Zap" className="h-12 w-12 text-yellow-500 mx-auto mb-2" />
+                      <div className="text-3xl font-bold text-yellow-500">999+</div>
+                      <div className="text-sm text-gray-400">Ошибок</div>
+                    </div>
+                  </div>
+
+                  {/* Error Messages */}
+                  <div className="space-y-3">
+                    <div className="bg-red-950/50 border-l-4 border-red-600 p-4 rounded">
+                      <div className="flex items-center gap-3">
+                        <Icon name="XCircle" className="h-6 w-6 text-red-500" />
+                        <div>
+                          <div className="font-bold text-red-400">КРИТИЧЕСКАЯ ОШИБКА</div>
+                          <div className="text-sm text-gray-400">Системные файлы повреждены</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-orange-950/50 border-l-4 border-orange-600 p-4 rounded">
+                      <div className="flex items-center gap-3">
+                        <Icon name="AlertTriangle" className="h-6 w-6 text-orange-500" />
+                        <div>
+                          <div className="font-bold text-orange-400">ПРЕДУПРЕЖДЕНИЕ</div>
+                          <div className="text-sm text-gray-400">Все данные могут быть уничтожены</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-red-950/50 border-l-4 border-red-600 p-4 rounded">
+                      <div className="flex items-center gap-3">
+                        <Icon name="Skull" className="h-6 w-6 text-red-500 animate-pulse" />
+                        <div>
+                          <div className="font-bold text-red-400">СИСТЕМА ЗАРАЖЕНА</div>
+                          <div className="text-sm text-gray-400">EVIL TEAM получил полный контроль</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Terminal Output */}
+                  <div className="bg-black border-2 border-red-600 rounded-lg p-4 font-mono text-sm">
+                    <div className="text-green-400 mb-2">root@evil-system:~#</div>
+                    <div className="space-y-1 text-gray-300">
+                      <div className="text-red-500">[ERROR] Disk failure imminent</div>
+                      <div className="text-orange-500">[WARN] Temperature critical: 85°C</div>
+                      <div className="text-red-500">[ERROR] SMART status: FAILED</div>
+                      <div className="text-red-500">[ERROR] Bad sectors: 9999+</div>
+                      <div className="text-yellow-500">[INFO] Evil backdoor installed</div>
+                      <div className="text-red-500">[ERROR] System integrity: COMPROMISED</div>
+                      <div className="text-green-400 animate-pulse">EVIL TEAM WAS HERE 😈</div>
+                    </div>
+                  </div>
+
+                  {/* Danger Buttons */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Button className="bg-red-600 hover:bg-red-700 h-16 text-lg" disabled>
+                      <Icon name="Trash2" className="mr-2 h-6 w-6" />
+                      Удалить всё (недоступно)
+                    </Button>
+                    <Button className="bg-orange-600 hover:bg-orange-700 h-16 text-lg" disabled>
+                      <Icon name="Download" className="mr-2 h-6 w-6" />
+                      Восстановить (невозможно)
+                    </Button>
+                  </div>
+
+                  {/* Evil Message */}
+                  <div className="text-center bg-black/80 p-6 rounded-lg border-2 border-red-600">
+                    <p className="text-2xl text-red-500 font-bold mb-2">💀 GAME OVER 💀</p>
+                    <p className="text-gray-400">Твой SSD принадлежит EVIL TEAM теперь</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
         </div>
 
         {/* Windows 10 Taskbar */}
@@ -559,6 +695,22 @@ const Index = () => {
                 className={`px-3 py-1 rounded ${activeApp === 'browser' ? 'bg-white/30' : 'bg-white/10 hover:bg-white/20'}`}
               >
                 <Icon name="Globe" className="h-5 w-5 text-white" />
+              </button>
+            )}
+            {openApps.includes('cs2') && (
+              <button
+                onClick={() => setActiveApp('cs2')}
+                className={`px-3 py-1 rounded ${activeApp === 'cs2' ? 'bg-white/30' : 'bg-white/10 hover:bg-white/20'}`}
+              >
+                <Icon name="Crosshair" className="h-5 w-5 text-orange-500" />
+              </button>
+            )}
+            {openApps.includes('died-ssd') && (
+              <button
+                onClick={() => setActiveApp('died-ssd')}
+                className={`px-3 py-1 rounded ${activeApp === 'died-ssd' ? 'bg-red-600/30 border-2 border-red-600' : 'bg-white/10 hover:bg-white/20'}`}
+              >
+                <Icon name="Skull" className="h-5 w-5 text-red-500 animate-pulse" />
               </button>
             )}
           </div>
