@@ -35,7 +35,7 @@ const Index = () => {
             onClick={() => setInputText('')}
             className="w-full bg-red-600 hover:bg-red-700 text-white"
           >
-            Clear
+            Enter
           </Button>
         </div>
       </div>
