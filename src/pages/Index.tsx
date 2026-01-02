@@ -15,6 +15,10 @@ const Index = () => {
     { id: 2, user: 'HackerPro', avatar: 'H', color: 'purple', text: 'EVIL TEAM ЭТО КРУТО! 🔥' }
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [openApps, setOpenApps] = useState<string[]>(['discord']);
+  const [activeApp, setActiveApp] = useState('discord');
+  const [calcDisplay, setCalcDisplay] = useState('0');
+  const [notepadText, setNotepadText] = useState('');
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -38,6 +42,34 @@ const Index = () => {
     }
   };
 
+  const openApp = (app: string) => {
+    if (!openApps.includes(app)) {
+      setOpenApps([...openApps, app]);
+    }
+    setActiveApp(app);
+  };
+
+  const closeApp = (app: string) => {
+    setOpenApps(openApps.filter(a => a !== app));
+    if (activeApp === app) {
+      setActiveApp(openApps[0] || '');
+    }
+  };
+
+  const calcClick = (value: string) => {
+    if (value === 'C') {
+      setCalcDisplay('0');
+    } else if (value === '=') {
+      try {
+        setCalcDisplay(eval(calcDisplay).toString());
+      } catch {
+        setCalcDisplay('Ошибка');
+      }
+    } else {
+      setCalcDisplay(calcDisplay === '0' ? value : calcDisplay + value);
+    }
+  };
+
   if (isUnlocked && showDesktop) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-400 to-blue-600 relative overflow-hidden">
@@ -58,10 +90,32 @@ const Index = () => {
               </div>
               <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Корзина</span>
             </div>
+
+            <div className="flex flex-col items-center gap-1 w-24 cursor-pointer group" onDoubleClick={() => openApp('notepad')}>
+              <div className="bg-blue-900/30 p-3 rounded group-hover:bg-blue-900/50 transition-all">
+                <Icon name="FileText" className="h-12 w-12 text-white" />
+              </div>
+              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Блокнот</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-1 w-24 cursor-pointer group" onDoubleClick={() => openApp('calc')}>
+              <div className="bg-blue-900/30 p-3 rounded group-hover:bg-blue-900/50 transition-all">
+                <Icon name="Calculator" className="h-12 w-12 text-white" />
+              </div>
+              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Калькулятор</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-1 w-24 cursor-pointer group" onDoubleClick={() => openApp('browser')}>
+              <div className="bg-blue-900/30 p-3 rounded group-hover:bg-blue-900/50 transition-all">
+                <Icon name="Globe" className="h-12 w-12 text-white" />
+              </div>
+              <span className="text-white text-xs text-center font-semibold drop-shadow-lg">Браузер</span>
+            </div>
           </div>
 
           {/* EVIL DISCORD Window */}
-          <Card className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] shadow-2xl overflow-hidden">
+          {openApps.includes('discord') && (
+          <Card className={`absolute top-20 left-20 w-[800px] h-[600px] shadow-2xl overflow-hidden ${activeApp === 'discord' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('discord')}>
             {/* Window Title Bar */}
             <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -162,6 +216,88 @@ const Index = () => {
               </div>
             </div>
           </Card>
+          )}
+
+          {/* Notepad Window */}
+          {openApps.includes('notepad') && (
+            <Card className={`absolute top-32 left-40 w-[600px] h-[500px] shadow-2xl overflow-hidden ${activeApp === 'notepad' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('notepad')}>
+              <div className="bg-white px-4 py-2 flex items-center justify-between border-b">
+                <div className="flex items-center gap-3">
+                  <Icon name="FileText" className="h-4 w-4" />
+                  <span className="font-semibold">Блокнот</span>
+                </div>
+                <div className="flex gap-2">
+                  <button className="hover:bg-gray-200 px-3 py-1">_</button>
+                  <button className="hover:bg-gray-200 px-3 py-1">□</button>
+                  <button className="hover:bg-red-600 hover:text-white px-3 py-1" onClick={() => closeApp('notepad')}>×</button>
+                </div>
+              </div>
+              <textarea
+                value={notepadText}
+                onChange={(e) => setNotepadText(e.target.value)}
+                className="w-full h-[calc(100%-48px)] p-4 resize-none focus:outline-none"
+                placeholder="Введите текст..."
+              />
+            </Card>
+          )}
+
+          {/* Calculator Window */}
+          {openApps.includes('calc') && (
+            <Card className={`absolute top-44 left-60 w-[320px] shadow-2xl overflow-hidden ${activeApp === 'calc' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('calc')}>
+              <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Icon name="Calculator" className="h-4 w-4 text-white" />
+                  <span className="text-white font-semibold">Калькулятор</span>
+                </div>
+                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={() => closeApp('calc')}>×</button>
+              </div>
+              <div className="bg-gray-900 p-4">
+                <div className="bg-gray-800 text-white text-right text-3xl p-4 mb-4 rounded">{calcDisplay}</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', 'C', '0', '=', '+'].map((btn) => (
+                    <Button
+                      key={btn}
+                      onClick={() => calcClick(btn)}
+                      className={`h-14 text-xl ${btn === '=' ? 'bg-blue-600 hover:bg-blue-700' : btn === 'C' ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-700 hover:bg-gray-600'}`}
+                    >
+                      {btn}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Browser Window */}
+          {openApps.includes('browser') && (
+            <Card className={`absolute top-24 left-80 w-[900px] h-[650px] shadow-2xl overflow-hidden ${activeApp === 'browser' ? 'z-50' : 'z-40'}`} onClick={() => setActiveApp('browser')}>
+              <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Icon name="Globe" className="h-4 w-4 text-white" />
+                  <span className="text-white font-semibold">Evil Browser</span>
+                </div>
+                <button className="hover:bg-red-600 text-white px-3 py-1" onClick={() => closeApp('browser')}>×</button>
+              </div>
+              <div className="bg-gray-100 p-2 border-b flex items-center gap-2">
+                <Button size="sm" variant="ghost"><Icon name="ChevronLeft" className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost"><Icon name="ChevronRight" className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost"><Icon name="RotateCw" className="h-4 w-4" /></Button>
+                <Input 
+                  className="flex-1" 
+                  value="https://evil-team.com" 
+                  readOnly 
+                />
+              </div>
+              <div className="h-[calc(100%-96px)] bg-gradient-to-br from-red-900 to-black flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <h1 className="text-6xl font-bold text-red-500 animate-pulse">EVIL TEAM</h1>
+                  <p className="text-3xl text-white">Официальный сайт</p>
+                  <p className="text-xl text-gray-400">👾 Добро пожаловать в тёмную сторону 👾</p>
+                </div>
+              </div>
+            </Card>
+          )}
+
         </div>
 
         {/* Windows 10 Taskbar */}
@@ -177,10 +313,39 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-1">
-            <div className="bg-red-600/20 border-2 border-red-600 px-3 py-1 rounded flex items-center gap-2">
-              <Icon name="MessageSquare" className="h-5 w-5 text-red-500" />
-              <span className="text-white text-xs font-semibold">EVIL DISCORD</span>
-            </div>
+            {openApps.includes('discord') && (
+              <button
+                onClick={() => setActiveApp('discord')}
+                className={`px-3 py-1 rounded flex items-center gap-2 ${activeApp === 'discord' ? 'bg-red-600/20 border-2 border-red-600' : 'bg-white/10 hover:bg-white/20'}`}
+              >
+                <Icon name="MessageSquare" className="h-5 w-5 text-red-500" />
+                <span className="text-white text-xs font-semibold">EVIL DISCORD</span>
+              </button>
+            )}
+            {openApps.includes('notepad') && (
+              <button
+                onClick={() => setActiveApp('notepad')}
+                className={`px-3 py-1 rounded ${activeApp === 'notepad' ? 'bg-white/30' : 'bg-white/10 hover:bg-white/20'}`}
+              >
+                <Icon name="FileText" className="h-5 w-5 text-white" />
+              </button>
+            )}
+            {openApps.includes('calc') && (
+              <button
+                onClick={() => setActiveApp('calc')}
+                className={`px-3 py-1 rounded ${activeApp === 'calc' ? 'bg-white/30' : 'bg-white/10 hover:bg-white/20'}`}
+              >
+                <Icon name="Calculator" className="h-5 w-5 text-white" />
+              </button>
+            )}
+            {openApps.includes('browser') && (
+              <button
+                onClick={() => setActiveApp('browser')}
+                className={`px-3 py-1 rounded ${activeApp === 'browser' ? 'bg-white/30' : 'bg-white/10 hover:bg-white/20'}`}
+              >
+                <Icon name="Globe" className="h-5 w-5 text-white" />
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-3 px-3">
